@@ -46,8 +46,12 @@ export default function CreateBusiness() {
       if (res.status === 200) {
         router.push("/dashboard");
       }
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || "Something went wrong");
+        } else {
+          setError("An unexpected error occurred");
+        }
     }
   };
 

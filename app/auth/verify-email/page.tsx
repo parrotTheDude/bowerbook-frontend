@@ -2,6 +2,7 @@
 import { useState, useRef, FormEvent, ChangeEvent, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
+import PublicLayout from "../../layouts/PublicLayout"; // ✅ Import Public Layout
 
 export default function VerifyEmail() {
   const searchParams = useSearchParams();
@@ -64,11 +65,11 @@ export default function VerifyEmail() {
         router.push(`/auth/create-account?email=${encodeURIComponent(email)}`);
       }
     } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-            setError(err.response?.data?.message || "Something went wrong");
-          } else {
-            setError("An unexpected error occurred");
-          }
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Something went wrong");
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 
@@ -84,45 +85,47 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold text-center text-black mb-4">Verify Your Email</h2>
-        <p className="text-gray-600 text-center mb-4">Enter the 6-digit code sent to <strong>{email}</strong>.</p>
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex justify-center gap-2">
-            {code.map((digit, index) => (
-              <input
-                key={index}
-                ref={(el) => { inputRefs.current[index] = el; }}
-                type="text"
-                maxLength={1}
-                className="w-12 h-12 text-center text-xl border border-gray-300 rounded text-black font-semibold tracking-widest uppercase"
-                value={digit}
-                onChange={(e) => handleChange(index, e)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-              />
-            ))}
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 disabled:bg-gray-400"
-            disabled={code.some((digit) => digit === "")}
-          >
-            Verify
-          </button>
-        </form>
-        <p className="text-sm text-center text-black mt-3">
-          Didn't get a code?{" "}
-          <button
-            className="text-blue-600 hover:underline"
-            onClick={handleResend}
-            disabled={timer > 0}
-          >
-            Resend Code {timer > 0 ? `in ${timer}s` : ""}
-          </button>
-        </p>
+    <PublicLayout>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="bg-white p-8 rounded-lg shadow-md w-96">
+          <h2 className="text-2xl font-bold text-center text-black mb-4">Verify Your Email</h2>
+          <p className="text-gray-600 text-center mb-4">Enter the 6-digit code sent to <strong>{email}</strong>.</p>
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex justify-center gap-2">
+              {code.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => { inputRefs.current[index] = el; }}
+                  type="text"
+                  maxLength={1}
+                  className="w-12 h-12 text-center text-xl border border-gray-300 rounded text-black font-semibold tracking-widest uppercase"
+                  value={digit}
+                  onChange={(e) => handleChange(index, e)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                />
+              ))}
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 disabled:bg-gray-400"
+              disabled={code.some((digit) => digit === "")}
+            >
+              Verify
+            </button>
+          </form>
+          <p className="text-sm text-center text-black mt-3">
+            Didn't get a code?{" "}
+            <button
+              className="text-blue-600 hover:underline"
+              onClick={handleResend}
+              disabled={timer > 0}
+            >
+              Resend Code {timer > 0 ? `in ${timer}s` : ""}
+            </button>
+          </p>
+        </div>
       </div>
-    </div>
+    </PublicLayout>
   );
 }
