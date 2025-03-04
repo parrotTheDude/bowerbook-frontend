@@ -2,7 +2,7 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import PublicLayout from "../../layouts/PublicLayout"; // ✅ Import Public Layout
+import PublicLayout from "../../layouts/PublicLayout";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -30,7 +30,13 @@ export default function Login() {
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || "Invalid email or password");
+        if (err.response?.status === 404) {
+          // ✅ Save email to localStorage and redirect to signup
+          localStorage.setItem("pendingEmail", formData.email);
+          router.push("/auth/register");
+        } else {
+          setError(err.response?.data?.message || "Invalid email or password");
+        }
       } else {
         setError("An unexpected error occurred");
       }

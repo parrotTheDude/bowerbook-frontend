@@ -2,13 +2,15 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
+import PublicLayout from "../../layouts/PublicLayout";
+import Image from "next/image";
 
 export default function CreateAccount() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const email = searchParams.get("email") || "";
   
-  const [fullName, setFullName] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -21,18 +23,15 @@ export default function CreateAccount() {
     match: false,
   });
 
-  // Capitalize first and last name
-  const formatName = (name: string) => {
-    return name
+  // Auto-capitalize name as the user types
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const formattedName = e.target.value
       .toLowerCase()
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
-  };
 
-  // Handle full name input
-  const handleFullNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFullName(e.target.value);
+    setName(formattedName);
   };
 
   // Handle password input and validation
@@ -64,16 +63,10 @@ export default function CreateAccount() {
     e.preventDefault();
     setError("");
 
-    // Extract first name & last name
-    const [firstName, ...lastNameArr] = fullName.trim().split(" ");
-    const name = formatName(firstName || "");
-    const last_name = formatName(lastNameArr.join(" "));
-
     try {
       const res = await axios.post("http://localhost:5001/api/auth/complete-registration", {
         email,
         name,
-        last_name,
         password,
       });
 
@@ -81,73 +74,97 @@ export default function CreateAccount() {
         router.push(`/auth/select-role?email=${encodeURIComponent(email)}`);
       }
     } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-            setError(err.response?.data?.message || "Something went wrong");
-          } else {
-            setError("An unexpected error occurred");
-          }
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Something went wrong");
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold text-center text-black mb-4">Create Your Account</h2>
-        <p className="text-gray-600 text-center mb-4">Finish setting up your account for <strong>{email}</strong>.</p>
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Full Name"
-            className="w-full p-3 border border-gray-300 rounded text-black"
-            value={fullName}
-            onChange={handleFullNameChange}
-            required
-          />
+    <PublicLayout>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="bg-white p-8 rounded-lg shadow-md w-96">
+          <h2 className="text-2xl font-bold text-center text-black mb-4">Create Your Account</h2>
+          <p className="text-gray-600 text-center mb-4">Finish setting up your account for <strong>{email}</strong>.</p>
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Name"
+              className="w-full p-3 border border-gray-300 rounded text-black"
+              value={name}
+              onChange={handleNameChange}
+              required
+            />
 
-          <input
-            type="password"
-            placeholder="Create a Password"
-            className={`w-full p-3 border rounded text-black ${
-              password && !passwordChecks.length ? "border-red-500" : "border-gray-300"
-            }`}
-            value={password}
-            onChange={handlePasswordChange}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className={`w-full p-3 border rounded text-black ${
-              confirmPassword && !passwordChecks.match ? "border-red-500" : "border-gray-300"
-            }`}
-            value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
-            required
-          />
+            <input
+              type="password"
+              placeholder="Create a Password"
+              className={`w-full p-3 border rounded text-black ${
+                password && !passwordChecks.length ? "border-red-500" : "border-gray-300"
+              }`}
+              value={password}
+              onChange={handlePasswordChange}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              className={`w-full p-3 border rounded text-black ${
+                confirmPassword && !passwordChecks.match ? "border-red-500" : "border-gray-300"
+              }`}
+              value={confirmPassword}
+              onChange={handleConfirmPasswordChange}
+              required
+            />
 
-          <div className="text-sm text-black">
-            <p className={passwordChecks.length ? "text-green-600" : "text-red-500"}>✅ 8+ characters</p>
-            <p className={passwordChecks.uppercase ? "text-green-600" : "text-red-500"}>✅ At least one uppercase letter</p>
-            <p className={passwordChecks.lowercase ? "text-green-600" : "text-red-500"}>✅ At least one lowercase letter</p>
-            <p className={passwordChecks.number ? "text-green-600" : "text-red-500"}>✅ At least one number</p>
-            <p className={passwordChecks.symbol ? "text-green-600" : "text-red-500"}>✅ At least one special character</p>
-            <p className={passwordChecks.match ? "text-green-600" : "text-red-500"}>✅ Passwords match</p>
-          </div>
+            {/* Password Validation Section */}
+            <div className="text-sm text-gray-500 space-y-1">
+              {[
+                { key: "length", label: "8+ characters" },
+                { key: "uppercase", label: "At least one uppercase letter" },
+                { key: "lowercase", label: "At least one lowercase letter" },
+                { key: "number", label: "At least one number" },
+                { key: "symbol", label: "At least one special character" },
+                { key: "match", label: "Passwords match" },
+              ].map(({ key, label }) => (
+                <div key={key} className="flex items-center gap-2">
+                  <Image
+                    src={passwordChecks[key as keyof typeof passwordChecks] ? "/correct.svg" : "/dot.svg"}
+                    alt="status"
+                    width={12}
+                    height={12}
+                  />
+                  <span className={passwordChecks[key as keyof typeof passwordChecks] ? "text-green-600" : "text-gray-500"}>
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
 
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 disabled:bg-gray-400"
-            disabled={!passwordChecks.length || !passwordChecks.uppercase || !passwordChecks.lowercase || !passwordChecks.number || !passwordChecks.symbol || !passwordChecks.match}
-          >
-            Create Account
-          </button>
-        </form>
-        <p className="text-sm text-center text-black mt-3">
-          Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-600 hover:underline">Login</a>
-        </p>
+            <button
+              type="submit"
+              className="w-full bg-green-600 text-white p-3 rounded-md font-semibold hover:bg-green-700 disabled:bg-gray-400"
+              disabled={
+                !passwordChecks.length || 
+                !passwordChecks.uppercase || 
+                !passwordChecks.lowercase || 
+                !passwordChecks.number || 
+                !passwordChecks.symbol || 
+                !passwordChecks.match
+              }
+            >
+              Create Account
+            </button>
+          </form>
+          <p className="text-sm text-center text-black mt-3">
+            Already have an account?{" "}
+            <a href="/auth/login" className="text-blue-600 hover:underline">Login</a>
+          </p>
+        </div>
       </div>
-    </div>
+    </PublicLayout>
   );
 }

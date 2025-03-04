@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import LoggedInLayout from "../layouts/LoggedInLayout"; // ✅ Import Logged-In Layout
 
 interface User {
   id: string;
@@ -51,10 +52,10 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [router]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading) return <LoggedInLayout><div className="min-h-screen flex items-center justify-center">Loading...</div></LoggedInLayout>;
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100">
+    <LoggedInLayout>
       <h1 className="text-3xl font-bold text-black mb-6">Dashboard</h1>
 
       {data?.user.role === "business_owner" && data.business ? (
@@ -80,6 +81,6 @@ export default function Dashboard() {
           )}
         </div>
       )}
-    </div>
+    </LoggedInLayout>
   );
 }

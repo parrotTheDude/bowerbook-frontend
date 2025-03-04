@@ -1,14 +1,35 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import PublicLayout from "../../layouts/PublicLayout"; // ✅ Import Public Layout
 
 export default function SelectRole() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          router.push("/auth/login");
+          return;
+        }
+
+        const res = await axios.get("http://localhost:5001/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setEmail(res.data.email); // ✅ Set email from authenticated user
+      } catch (err) {
+        router.push("/auth/login"); // Redirect if authentication fails
+      }
+    };
+
+    fetchUser();
+  }, [router]);
 
   const handleRoleSelect = async (role: "business_owner" | "customer") => {
     setError("");
@@ -43,6 +64,7 @@ export default function SelectRole() {
         <div className="bg-white p-8 rounded-lg shadow-md w-96 text-center">
           <h2 className="text-2xl font-bold text-black mb-4">Choose Your Role</h2>
           <p className="text-gray-600 mb-6">Select how you want to use BowerBook.</p>
+          <p className="text-gray-500 text-sm mb-4">Logged in as: <strong>{email}</strong></p> {/* ✅ Display email */}
 
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
