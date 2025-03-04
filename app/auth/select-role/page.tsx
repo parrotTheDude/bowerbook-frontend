@@ -24,6 +24,8 @@ export default function SelectRole() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      localStorage.setItem("role", role);
+      // ✅ Redirect Business Owners to `/create-business` before `/dashboard`
       router.push(role === "business_owner" ? "/create-business" : "/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong.");
